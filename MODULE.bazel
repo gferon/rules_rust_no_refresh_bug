@@ -1,0 +1,58 @@
+"""projectx.ai/main"""
+
+module(
+    name = "no-refresh",
+)
+
+# see https://registry.bazel.build
+bazel_dep(name = "rules_rust", version = "0.56.0")
+
+# Configure Rust toolchains and crates
+
+RUST_VERSION = "1.83.0"
+RUST_EDITION = "2021"
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = RUST_EDITION,
+    extra_target_triples = [
+        "aarch64-apple-ios",
+        "aarch64-apple-ios-sim",
+        "x86_64-apple-ios",
+        "x86_64-linux-android",
+        "aarch64-linux-android",
+    ],
+    rustfmt_version = RUST_VERSION,
+    versions = [RUST_VERSION],
+)
+use_repo(
+    rust,
+    "rust_toolchains",
+)
+
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension(
+    "@rules_rust//crate_universe:extension.bzl",
+    "crate",
+)
+
+crate.from_cargo(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = [
+        "//:Cargo.toml",
+    ],
+    # supported_platform_triples = [
+    #     "aarch64-apple-darwin",
+    #     "aarch64-apple-ios-sim",
+    #     "aarch64-apple-ios",
+    #     "aarch64-linux-android",
+    #     "aarch64-unknown-linux-gnu",
+    #     "x86_64-apple-darwin",
+    #     "x86_64-apple-ios",
+    #     "x86_64-linux-android",
+    #     "x86_64-unknown-linux-gnu",
+    # ],
+)
+use_repo(crate, "crate_index")
